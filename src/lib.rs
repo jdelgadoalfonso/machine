@@ -404,12 +404,14 @@ mod machine;
 mod methods;
 mod transitions;
 
-use std::fs::File;
+use std::fs::{self, File, OpenOptions};
 use std::io::{Seek, Write};
 
 use machine::Machine;
 use methods::Methods;
 use transitions::Transitions;
+
+static OUTPUT_DIR: &'static str = "target/machine";
 
 #[proc_macro]
 pub fn machine(input: proc_macro::TokenStream) -> syn::export::TokenStream {
@@ -419,10 +421,18 @@ pub fn machine(input: proc_macro::TokenStream) -> syn::export::TokenStream {
     let (name, stream) = machine.generate();
     trace!("generated: {}", stream);
 
-    let file_name = format!("target/{}.rs", name.to_string().to_lowercase());
-    File::create(&file_name)
+    let output_dir = format!("{}/{}", OUTPUT_DIR, name.to_string().to_lowercase());
+
+    fs::create_dir_all(&output_dir).expect("error creating directory");
+
+    let file_name = format!("{}/machine.rs", output_dir);
+
+    OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(&file_name)
         .and_then(|mut file| {
-            file.seek(std::io::SeekFrom::End(0))?;
             file.write_all(stream.to_string().as_bytes())?;
             file.flush()?;
 

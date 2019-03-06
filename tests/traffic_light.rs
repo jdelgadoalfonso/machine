@@ -29,7 +29,7 @@ transitions!(TrafficLight,
     (Green, Toggle) => BlinkingOrange,
     (Orange, Toggle) => BlinkingOrange,
     (Red, Toggle) => BlinkingOrange,
-    (BlinkingOrange, Toggle) => Red
+    (BlinkingOrange, Toggle) => Red,
   ]
 );
 
@@ -37,7 +37,7 @@ methods!(TrafficLight,
   [
     Green => get count: u8,
     Green => set count: u8,
-    Green, Orange, Red, BlinkingOrange => default(false) fn working(&self) -> bool
+    [Green, Orange, Red, BlinkingOrange,] => default(false) fn working(&self) -> bool
   ]
 );
 
