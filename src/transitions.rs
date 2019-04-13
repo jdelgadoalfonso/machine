@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 
 use case::CaseExt;
-use syn::export::Span;
-use syn::parse::{Parse, ParseStream, Result};
-use syn::Ident;
+use syn::{
+    Ident,
+    export::Span,
+    parse::{Parse, ParseStream, Result},
+    punctuated::Punctuated,
+};
 
 #[derive(Debug)]
 pub struct Transitions {
@@ -27,21 +30,11 @@ impl Parse for Transitions {
         bracketed!(content in input);
 
         trace!("content: {:?}", content);
-        let mut transitions = Vec::new();
+        
+        let punctuated: Punctuated<Transition, Token![,]> =
+            content.parse_terminated(Transition::parse)?;
 
-        let t: Transition = content.parse()?;
-        transitions.push(t);
-
-        loop {
-            let lookahead = content.lookahead1();
-            if lookahead.peek(Token![,]) {
-                let _: Token![,] = content.parse()?;
-                let t: Transition = content.parse()?;
-                transitions.push(t);
-            } else {
-                break;
-            }
-        }
+        let transitions: Vec<_> = punctuated.into_iter().collect();
 
         Ok(Transitions {
             machine_name,
